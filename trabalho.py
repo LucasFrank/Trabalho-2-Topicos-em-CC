@@ -66,7 +66,7 @@ def fou(uu, Nx, Nt, h, dt, alpha):
     
     for t in range(0,Nt):
         for i in range(0,Nx+1):
-            u[i,t+1] = u[i,t] + (dt/h*alpha) * ( facef(u,i,t,alpha) - faceg(u,i,t,alpha))
+            u[i,t+1] = u[i,t] - (dt/h*alpha) * ( facef(u,i,t,alpha) - faceg(u,i,t,alpha))
     
     return u
     
@@ -138,15 +138,15 @@ elif case == 2:
 
 Nx = 400 #Quantidade de elementos
 h = (B - A)/np.float(Nx) #Discretização no espaço
-dt = 0.0025 #Discretização no tempo s δt = 2.5 × 10−4 e δt = 2.5 × 10-3
+dt = 0.00025 #Discretização no tempo s δt = 2.5 × 10−4 e δt = 2.5 × 10-3
 Nt = np.int(T/dt) #Quantidade de iterações no tempo
 x = np.linspace(A,B,Nx+1) #Para plot das aproximações
 K = 1 #Coeficiente convectivo
-tj = 0.25 #Instante de tempo desejado
+tj = 0.05 #Instante de tempo desejado
 t = int(tj/dt) #Índice correspondente ///
 
 xe = np.linspace(A,B,1000) #Para plot da solução exata
-u_e = exata(xe, alpha, t, case)
+u_e = exata(xe, alpha, tj, case)
 
 u = condicaoInicial(Nx,Nt,h,x,case)
 u = condicoesContorno(u,Nx,Nt)
@@ -162,7 +162,7 @@ plt.title('Exata x Aproximada ('+ str(Nx) +  ' elementos , dt = ' + str(dt/h) + 
 plt.grid()
 
 plt.plot(xe, u_e, 'r-', label = 'Exata')
-plt.plot(x, u_fou[:,t], 'b-', label = 'First Order UpWind')
+plt.plot(x, u_fou[:,t], 'bx', label = 'First Order UpWind')
 #plt.plot(x,u_laxFri[:,t],'bx',label = 'Lax-Friedrichs')
 #plt.plot(x,u_laxFri[:,0],'kx-',label = 'Lax-inicial')
 
