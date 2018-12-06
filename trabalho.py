@@ -62,15 +62,9 @@ def facef(u,i,t,alpha,Nx,type): # i + 1/2
         else:
             return u[i + 1,t]
     elif type == 1: # TOPUS
-        if(i == Nx-1):
-            uD = u[i, t]
-        else:
-            uD = u[i + 1,t]
+        uD = u[i + 1,t]
         uU = u[i,t]
-        if(i == 0):
-            uR = u[i, t] # 0
-        else:
-            uR = u[i - 1, t]
+        uR = u[i - 1, t]
         if(uD == uR):
             return uU
         uHat = (uU - uR)/(uD - uR)
@@ -86,22 +80,18 @@ def faceg(u,i,t,alpha,Nx,type): # i - 1/2
             return u[i,t]
     elif type == 1: # TOPUS
         uD = u[i,t]
-        if(i == 0):
-            uU = u[i,t] #0
-            uR = u[i,t] #0
+        uU = u[i - 1,t]
+        if(i > 1):
+            uR = u[i - 2,t]
         else:
-            uU = u[i - 1,t]
-            if(i > 1):
-                uR = u[i - 2,t]
-            else:
-                uR = u[i,t] # 0
+            uR = u[i,t] # 0
         if(uD == uR):
             return uU
         uHat = (uU - uR)/(uD - uR)
         if(uHat < 0 or uHat > 1):
             return uU
         return uR + (uD - uR)*( 2*(uHat ** 4) - 3*(uHat ** 3) + 2*uHat)
-############################################################
+
 
 def condicaoInicial(Nx, Nt, h, x, case):
     u = np.zeros([Nx+1,Nt+1])
@@ -134,16 +124,22 @@ def condicaoInicial(Nx, Nt, h, x, case):
 
     return u
 
-
 def condicoesContorno(u,Nx,Nt):
     for t in range(0, Nt+1):
         u[0,0] = 0.0
         u[Nx-1,0] = 0.0
     return u
 
+######################################################################
+
 #Entrada
-case = 1 # case1 ou case2
 alpha = 1.0 # coeficiente convectivo
+plotType = 1 # 0 - FOU | 1 - TOPUS
+case = 1 # case1 ou case2
+tj = 0.25 #Instante de tempo desejado
+dt = 0.0025 #Discretização no tempo s δt = 2.5 × 10−4 e δt = 2.5 × 10-3
+Nx = 400 #Quantidade de elementos
+
 if case == 1:
     T = 1 #Tempo final case1 = 1 | case2 = 0.25
     A = 0 #Limite inferior para x
@@ -153,13 +149,10 @@ elif case == 2:
     A = -1 #Limite inferior para x
     B = 1 #Limite superior para x
 
-
-Nx = 400 #Quantidade de elementos
 h = (B - A)/np.float(Nx) #Discretização no espaço
-dt = 0.0025 #Discretização no tempo s δt = 2.5 × 10−4 e δt = 2.5 × 10-3
 Nt = np.int(T/dt) #Quantidade de iterações no tempo
 x = np.linspace(A,B,Nx+1) #Para plot das aproximações
-tj = 0.25 #Instante de tempo desejado
+
 t = int(tj/dt) #Índice correspondente ///
 
 print(alpha*dt/h)
@@ -171,8 +164,6 @@ u = condicoesContorno(u,Nx,Nt)
 
 u_fou = fou(u,Nx,Nt,h,dt,alpha)
 u_topus = topus(u,Nx,Nt,h,dt,alpha)
-#u_laxFri,teste = laxFriedrichs(u,Nx,Nt,h,dt)
-#u_kt,teste2 = KT(u,Nx,Nt,h,dt,t)
 
 #Plota o grafico
 plt.title('Exata x Aproximada ('+ str(Nx) +  ' elementos , dt = ' + str(dt))
@@ -182,8 +173,13 @@ if case == 1:
 plt.grid()
 
 plt.plot(xe, u_e, 'r-', label = 'Exata')
-plt.plot(x, u_fou[:,t], 'bx', label = 'FOU')
-plt.plot(x, u_topus[:,t], 'gx', label = 'TOPUS')
+methodName = ''
+if plotType == 0:
+    methodName = 'FOU_'
+    plt.plot(x, u_fou[:,t], 'bx', label = 'FOU')
+elif plotType == 1:
+    methodName = 'TOPUS_'
+    plt.plot(x, u_topus[:,t], 'gx', label = 'TOPUS')
 
 plt.xlabel( 'x' )
 plt.ylabel ( 'u' )
@@ -191,6 +187,6 @@ plt.legend(loc='best')
 diretorio = ""
 dtAux = str(dt/h)
 dtAux = dtAux.replace('.','-')
-nomefig = 'FOU_' + dtAux + '_case_' + str(case) + '.png'
+nomefig = methodName + dtAux + '_case_' + str(case) + '.png'
 plt.savefig(diretorio+nomefig, dpi=200)
 plt.show()
